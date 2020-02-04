@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ 	xsi:schemaLocation="http://www.springframework.org/schema/beans
+ 						http://www.springframework.org/schema/beans/spring-beans.xsd
+ 						http://www.springframework.org/schema/security
+ 						http://www.springframework.org/schema/security/spring-security.xsd">
+	
+	<http authentication-manager-ref="jdbc-auth">	
+		<intercept-url pattern="/main" access="permitAll()" />
+		<intercept-url pattern="/addCarForm" access="hasRole('ROLE_USER')" />
+		<intercept-url pattern="/user/" access="hasRole('ROLE_USER')" />
+		<intercept-url pattern="/addUser" access="permitAll()" />
+		<form-login login-page="/login" 
+					login-processing-url="/j_spring_security_check"
+					authentication-failure-url="/login?eror=true"
+					username-parameter="login" 
+					password-parameter="password"
+					default-target-url="/main" />
+		<logout invalidate-session="true" 
+				logout-success-url="/main"
+				logout-url="/j_spring_security_logout" />
+		<!-- <access-denied-handler error-page="/denied"/> -->
+		<session-management invalid-session-url="/login">
+			<concurrency-control max-sessions="1"
+								 expired-url="/main" />
+		</session-management>
+	</http>
+
+	<authentication-manager id="in-memory-auth">
+		<authentication-provider>	
+		<password-encoder ref="passwordEncoder" />
+			<user-service>
+				<user name="root" password="1234" authorities="ROLE_USER"/>
+			</user-service>
+		</authentication-provider>
+	</authentication-manager>	
+	
+	<authentication-manager id="jdbc-auth">
+		<authentication-provider>
+			<password-encoder ref="passwordEncoder" />
+			<jdbc-user-service data-source-ref="dataSource"
+				users-by-username-query="select login,password,enabled from users where login = ?"
+				authorities-by-username-query="select login, role from users where login = ?" />
+		</authentication-provider>
+	</authentication-manager>
+	
+	
+	<beans:bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <beans:property name="driverClassName" value="org.postgresql.Driver"/>
+        <beans:property name="url" value="jdbc:postgresql://localhost:5433/car_store"/>
+        <beans:property name="username" value="postgres"/>
+        <beans:property name="password" value="postgrespass"/>
+	</beans:bean>
+    
+	<beans:bean id="textEncryptor" class="org.springframework.security.crypto.encrypt.Encryptors"
+		factory-method="noOpText" />
+		
+	<beans:bean id="passwordEncoder" class="org.springframework.security.crypto.password.NoOpPasswordEncoder"
+		factory-method="getInstance" />    
+</beans:beans>
+	
