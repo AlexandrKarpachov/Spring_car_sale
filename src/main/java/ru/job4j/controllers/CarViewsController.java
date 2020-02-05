@@ -1,6 +1,5 @@
 package ru.job4j.controllers;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.security.Principal;
@@ -13,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,70 +24,27 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ru.job4j.Validator.CarValidator;
-import ru.job4j.Validator.UserValidator;
+import ru.job4j.dao.CarRepository;
 import ru.job4j.dao.CarStoreageDB;
-import ru.job4j.dao.UserStorageDB;
+import ru.job4j.dao.UserRepository;
 import ru.job4j.domain.Car;
 import ru.job4j.domain.User;
 
-
-
-
 @Controller
-public class ViewsController {
+public class CarViewsController {
 	
 	@Autowired
-    private UserValidator userValidator;
-
+	UserRepository userRepository;
+	
 	@Autowired
 	private CarValidator carValidator;
 	
 	@Autowired
-	private CarStoreageDB carStorage;
-	
-	@Autowired
-	private UserStorageDB userStorage;
-	
-	@GetMapping("/main")
-	public String main(Principal principal, Model model) {
-		return "main";
-	}
-	
-	@RequestMapping(value="/login")
-	public String login(HttpServletRequest request, Model model){
-		return "login";
-	}
-	
-	@RequestMapping(value = "/registration", method = RequestMethod.GET)
-	public String registration(Model model) {
-		model.addAttribute("userForm", new User());
-
-		return "registration";
-	}
-
-	@RequestMapping(value = "/addUser", method = RequestMethod.POST)
-	public String registration(@ModelAttribute("userForm") User userForm, BindingResult bindingResult, Model model) {
-		userValidator.validate(userForm, bindingResult);
-		if (bindingResult.hasErrors()) {
-			return "registration";
-		}
-		userStorage.addUser(userForm);
-		return "redirect: main";
-	}
-
-	@RequestMapping(value="/user/{login}", method=RequestMethod.GET)
-	public String showSpitterProfile(@PathVariable("login") String login, 
-			Model model) throws JsonProcessingException {
-		ObjectMapper mapper = new ObjectMapper();
-		User user = userStorage.getUserByLogin(login);
-		String result = mapper.writeValueAsString(user);
-		model.addAttribute("user", result);
-		return "user";
-	}
+	private CarRepository carStorage;
 	
 	@RequestMapping(value = "/carView/{id}", method = RequestMethod.GET)
 	private String carView(@PathVariable("id") long id, Model model) throws JsonProcessingException {
-		Car car = carStorage.getById(id);
+		Car car = carStorage.findById(id).get();
 		User user = car.getUser();
 		ObjectMapper mapper = new ObjectMapper();
 		String carJson = mapper.writeValueAsString(car);
@@ -98,22 +53,6 @@ public class ViewsController {
 		model.addAttribute("user", userJson);
 		return "carView";
 	}
-	
-	@RequestMapping(value = "/sell", method = RequestMethod.POST)
-	private String makeInactive(@RequestParam("carId") long id, String login) {
-		Car car = carStorage.getById(id);
-		car.setActive(false);
-		carStorage.update(car);
-		return "redirect: user/" + login;
-	}
-	
-	@RequestMapping(value="/denied")
-	public String denied(){
-		return "denied";
-	}
-	
-	
-	
 	
 	@RequestMapping(value="/addCarForm", method=RequestMethod.GET)
 	public String addCar(final Model model, @ModelAttribute("carForm") final Car car) {
@@ -141,7 +80,7 @@ public class ViewsController {
 		}
 		ServletContext context = servletRequest.getSession().getServletContext();
 		String userLogin = principal.getName();
-		User user = userStorage.getUserByLogin(userLogin);
+		User user = userRepository.findByLogin(userLogin);
 		car.setUser(user);
 		this.saveImages(car, context);
 		carStorage.save(car);
@@ -160,9 +99,12 @@ public class ViewsController {
 			}
 		}
 	}
-
 	
-	
-	
-	
+	@RequestMapping(value = "/sell", method = RequestMethod.POST)
+	private String makeInactive(@RequestParam("carId") long id, String login) {
+		Car car = carStorage.findById(id).get();
+		car.setActive(false);
+		carStorage.save(car);
+		return "redirect: user/" + login;
+	}
 }

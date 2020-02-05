@@ -15,7 +15,8 @@
         <param-value>
         	classpath:spring-context.xml,
         	classpath:spring-security.xml,
-        	classpath:spring-webContext.xml
+        	classpath:spring-webContext.xml,
+        	classpath:spring-data.xml
         </param-value>
     </context-param>
 	

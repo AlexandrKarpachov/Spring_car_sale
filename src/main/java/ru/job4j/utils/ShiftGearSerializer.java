@@ -17,7 +17,6 @@ public class ShiftGearSerializer extends StdSerializer<ShiftGear> {
 		super(ShiftGear.class);
 	}
 
-	
 	protected ShiftGearSerializer(Class<ShiftGear> t) {
 		super(t);
 	}

@@ -1,14 +1,20 @@
 package ru.job4j;
 
-import ru.job4j.dao.BrandStorage;
-import ru.job4j.domain.Brand;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import ru.job4j.domain.TestService;
+import ru.job4j.domain.User;
+
 
 public class Test {
+	//private SearchCriteria criteria;
 	public static void main(String[] args) {
-		BrandStorage store = new BrandStorage(); 
-		
-		Brand br = store.getById(1L);
-		System.out.println(br.getModels());
-		
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "spring-data.xml"
+        )) {
+	        TestService serv = context.getBean( TestService.class);
+	        User us = serv.getUser("root");
+	       System.out.println(us);
+	 }
 	}
 }

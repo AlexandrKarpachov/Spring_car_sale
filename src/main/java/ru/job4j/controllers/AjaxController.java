@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ru.job4j.dao.BrandStorage;
+import ru.job4j.dao.BrandRepository;
+import ru.job4j.dao.CarRepository;
 import ru.job4j.dao.CarStoreageDB;
 import ru.job4j.domain.Brand;
 import ru.job4j.domain.Car;
@@ -32,14 +33,14 @@ public class AjaxController {
 	private static final int MIN_YEAR = 1900;
 	
 	@Autowired
-	private BrandStorage brandStorage;
+	private BrandRepository brandStorage;
 	
 	@Autowired
-	private CarStoreageDB carStorage;
+	private CarRepository carStorage;
 	
 	@RequestMapping(value = "/brands", method = RequestMethod.GET, produces = "application/json")
-	public List<Brand> getBrands() {
-		return brandStorage.getAll();
+	public Iterable<Brand> getBrands() {
+		return brandStorage.findAll();
 	}
 	
 	@RequestMapping(value = "/years", method = RequestMethod.GET, produces = "application/json")
@@ -54,8 +55,8 @@ public class AjaxController {
 	}
 	
 	@RequestMapping(value = "/models", method = RequestMethod.GET, produces = "application/json")
-	private Set<Model> getModelsJson(@RequestParam int brandId) {
-		Brand brand = brandStorage.getById(brandId);
+	private Set<Model> getModelsJson(@RequestParam long brandId) {
+		Brand brand = brandStorage.findByIdAndFetchModelsEagerly(brandId);
 		Set<Model> models = brand.getModels();
 		return models;
 	}
@@ -71,9 +72,9 @@ public class AjaxController {
 	}
 
 	@RequestMapping(value = "/car", method = RequestMethod.GET, produces = "application/json")
-	private Map<String, Object> getCarJson(@RequestParam int carId) {
+	private Map<String, Object> getCarJson(@RequestParam long carId) {
 		Map<String, Object> result = new HashMap<>();
-		Car car = carStorage.getById(carId);
+		Car car = carStorage.findById(carId).get();
 		result.put("car", car);
 		result.put("name", car.getUser().getName());
 		result.put("surname", car.getUser().getSurname());
@@ -88,7 +89,7 @@ public class AjaxController {
 	
 	@RequestMapping(value = "/cars", method = RequestMethod.GET, produces = "application/json")
 	private List<Car> getCarsJson(@ModelAttribute CarFilter filter) {
-		return carStorage.getByFilter(filter);
+		return carStorage.findByCarFilter(filter);
 	}
 	
 }
