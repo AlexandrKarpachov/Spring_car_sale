@@ -28,14 +28,14 @@
 		</session-management>
 	</http>
 
-	<authentication-manager id="in-memory-auth">
+<!-- 	<authentication-manager id="in-memory-auth">
 		<authentication-provider>	
 		<password-encoder ref="passwordEncoder" />
 			<user-service>
 				<user name="root" password="1234" authorities="ROLE_USER"/>
 			</user-service>
 		</authentication-provider>
-	</authentication-manager>	
+	</authentication-manager>	 -->
 	
 	<authentication-manager id="jdbc-auth">
 		<authentication-provider>
